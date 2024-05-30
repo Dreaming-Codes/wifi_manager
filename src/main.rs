@@ -1,19 +1,14 @@
-use std::{time::Duration};
+use std::net::{SocketAddr, SocketAddrV4};
 
 use ap::settings::{start_ap_mode, wait_for_ip_from_device};
-use futures::{
-    stream::{self, StreamExt},
-};
-use rusty_network_manager::{
-    DeviceProxy, NetworkManagerProxy,
-};
-use tokio::time::sleep;
+use futures::stream::{self, StreamExt};
+use portal::{ip_tables::configure_iptables, router::start_portal};
+use rusty_network_manager::{DeviceProxy, NetworkManagerProxy};
 use tracing::{debug, info};
-use zbus::{
-    Connection,
-};
+use zbus::Connection;
 
 mod ap;
+mod portal;
 
 #[tokio::main]
 async fn main() {
@@ -70,10 +65,20 @@ async fn main() {
             .await
             .expect("Failed to get ap device");
 
+        let ap_interface_name = ap_device
+            .interface()
+            .await
+            .expect("Failed to get ap device interface name");
+
+        info!("AP Interface name: {}", ap_interface_name);
+
         let ap_ip = wait_for_ip_from_device(&ap_device, &dbus_connection).await;
         info!("AP IP: {}", ap_ip);
 
-        sleep(Duration::from_secs(3)).await;
+        configure_iptables(&ap_interface_name, format!("{}:3000", ap_ip).as_str());
+
+        let socket_portal_address = SocketAddr::V4(SocketAddrV4::new(ap_ip, 3000));
+        start_portal(&socket_portal_address).await;
 
         let _ = network_manager
             .deactivate_connection(&ap_values.1 .1.as_ref())
