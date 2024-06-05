@@ -95,7 +95,7 @@ pub async fn start_ap_mode<'a>(
 
     let ap_connection = network_manager
         .add_and_activate_connection2(
-            make_arguments_for_ap(env!("AP_NAME")),
+            make_arguments_for_ap(option_env!("AP_NAME").unwrap_or("RustyCaptivePortalAp")),
             &wifi_device,
             &ObjectPath::try_from("/").unwrap(),
             options,

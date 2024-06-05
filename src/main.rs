@@ -58,7 +58,7 @@ async fn main() {
         })
         .await;
 
-    if !network_connected || env!("SKIP_NETWORK_TEST") == "true" {
+    if !network_connected || option_env!("SKIP_NETWORK_TEST").unwrap_or("false") == "true" {
         let ap_values = start_ap_mode(&dbus_connection, &network_manager).await;
 
         let ap_device = DeviceProxy::new_from_path(ap_values.0, &dbus_connection)
