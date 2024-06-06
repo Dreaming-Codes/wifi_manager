@@ -5,11 +5,7 @@ pub fn configure_iptables(interface_name: &str, portal_addr: &str) {
     ipt.append(
         "nat",
         "PREROUTING",
-        format!(
-            "-i {} -p tcp --dport 80 -j DNAT --to-destination {}",
-            interface_name, portal_addr
-        )
-        .as_str(),
+        format!("-p tcp --dport 80 -j DNAT --to-destination {}", portal_addr).as_str(),
     )
     .expect("Failed to append iptables rule");
 
@@ -18,8 +14,8 @@ pub fn configure_iptables(interface_name: &str, portal_addr: &str) {
         "nat",
         "PREROUTING",
         format!(
-            "-i {} -p tcp --dport 443 -j DNAT --to-destination {}",
-            interface_name, portal_addr
+            "-p tcp --dport 443 -j DNAT --to-destination {}",
+            portal_addr
         )
         .as_str(),
     )
